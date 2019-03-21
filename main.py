@@ -3,6 +3,11 @@ import os
 from threading import Thread
 
 
+def play_music(song_name, clientik):
+
+    pass
+
+
 def main():
 
     token = ""
@@ -51,9 +56,15 @@ def main():
 
         if message.content == "!gc!play":
 
-            if not message.content.isdigit():
+            default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic/songs"
+            music_folder = default_folder + "Fairy_Tail_main_theme.mp3"
 
-                await message.channel.send("It isn't a number")
+            # music_thread = Thread(target=play_music(music_folder, client))
+            # music_thread.start()
+
+            channel = client.get_channel("425248908172853254")
+
+            client.join_voice_channel(channel)
 
     client.run(token)
 
