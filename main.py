@@ -1,11 +1,5 @@
 import discord
 import os
-from threading import Thread
-
-
-def play_music(song_name, clientik):
-
-    pass
 
 
 def main():
@@ -13,6 +7,8 @@ def main():
     token = ""   # Discord bot token
 
     client = discord.Client()   # Discord client
+
+    music_player = None     # Initialization of music player, because can get an error "Used before assignment"
 
     @client.event
     async def on_ready():   # To show starting of the work and some information
@@ -30,18 +26,22 @@ def main():
 
         if message.content == "!gc!creator":
 
-            # Info about author
+            # Code to show info about author
 
             creator_message_text = "My creator is Geneus003 \n Email: geneus003@gmail.com"
 
             await client.send_message(message.channel, creator_message_text)
 
-        if message.content == "!gc!help":   # Info about commands
+        if message.content == "!gc!help":
+
+            # Code to show all available bot functions
 
             await client.send_message(message.channel, "Some instructions")
             await client.send_message(message.channel, "Some more instuctions")
 
-        if message.content == "!gc!list":   # Send ID and names of songs
+        if message.content == "!gc!list":
+
+            # Code to send ID and names of songs in chat
 
             default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic"     # Path to project folder
 
@@ -59,6 +59,8 @@ def main():
 
         if message.content == "!gc!play":
 
+            # Code for playing music
+
             default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic/songs"   # Path to all music
             music_folder = default_folder + "/Fairy_Tail_main_theme.mp3"    # Path to correct music
 
@@ -70,9 +72,21 @@ def main():
 
             bot_voice = await client.join_voice_channel(channel)       # Joining to voice channel
 
+            global music_player
+
             music_player = bot_voice.create_ffmpeg_player(music_folder)     # Creating player
 
             music_player.start()    # Playing music in voice channel
+
+        if message.content == "!gc!stop":
+
+            # Code for stopping music
+
+            if music_player is None:    # If music_player had never used
+                return
+
+            if music_player.is_playing():   # Checking for activity if true -> stopping
+                music_player.stop()
 
     client.run(token)
 
