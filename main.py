@@ -2,6 +2,16 @@ import discord
 import os
 
 
+def get_list_of_local_music():
+
+    default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic"  # Path to project folder
+
+    folder_with_songs = default_folder + "/songs"  # Path to songs folder
+    folder_with_songs = os.listdir(folder_with_songs)  # List of songs names
+
+    return folder_with_songs
+
+
 def main():
 
     token = ""   # Discord bot token
@@ -21,7 +31,8 @@ def main():
     @client.event
     async def on_message(message):
 
-        if message.author == client.user:   # Just need it
+        if message.author == client.user:
+            # Just need it
             return
 
         if message.content == "!gc!creator":
@@ -37,16 +48,13 @@ def main():
             # Code to show all available bot functions
 
             await client.send_message(message.channel, "Some instructions")
-            await client.send_message(message.channel, "Some more instuctions")
+            await client.send_message(message.channel, "Some more instructions")
 
         if message.content == "!gc!list":
 
             # Code to send ID and names of songs in chat
 
-            default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic"     # Path to project folder
-
-            folder_with_songs = default_folder + "/songs"   # Path to songs folder
-            folder_with_songs = os.listdir(folder_with_songs)   # List of songs names
+            folder_with_songs = get_list_of_local_music()
 
             list_of_music_list = ""  # Message with information about names of available songs, and there ID
             counter_for_music_list = 1      # ID for music list
@@ -57,26 +65,41 @@ def main():
 
             await client.send_message(message.channel, list_of_music_list)
 
-        if message.content == "!gc!play":
+        if message.content.startswith("!gc!play"):
 
-            # Code for playing music
+            # Code to play music in channel
 
-            default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic/songs"   # Path to all music
-            music_folder = default_folder + "/Fairy_Tail_main_theme.mp3"    # Path to correct music
+            request_to_play_message = message.content.split(" ")    # Parsing message
 
-            print("Starting playing music")
-            # music_thread = Thread(target=play_music(music_folder, client))
-            # music_thread.start()
+            # Checking for validity
+            if len(request_to_play_message) != 2 or (not request_to_play_message[1].isdigit()):
 
-            channel = client.get_channel("425248908172853254")      # Id of voice channel
+                await client.send_message(message.channel, "Incorrect input:(")
+                return
 
-            bot_voice = await client.join_voice_channel(channel)       # Joining to voice channel
+            needful_song_number = int(request_to_play_message[1])   # The number of needful song
 
-            global music_player
+            # The number mustn't be zero, here is code which checking that needful_song_number isn't zero
+            if needful_song_number == 0:
+                await client.send_message(message.channel, "Incorrect input:(")
+                return
 
-            music_player = bot_voice.create_ffmpeg_player(music_folder)     # Creating player
+            folder_with_songs = get_list_of_local_music()   # Getting name of local songs
 
-            music_player.start()    # Playing music in voice channel
+            if len(folder_with_songs) >= needful_song_number:   # If number more than songs we have
+
+                default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic/songs"  # Path to music
+                music_folder = default_folder + "/" + folder_with_songs[needful_song_number - 1]    # Path to correct music
+
+                channel = client.get_channel("425248908172853254")      # Getting channel id
+
+                bot_voice = await client.join_voice_channel(channel)  # Joining to voice channel
+
+                global music_player     # This code need to stop the music
+
+                music_player = bot_voice.create_ffmpeg_player(music_folder)  # Creating player
+
+                music_player.start()  # Playing music in voice channel
 
         if message.content == "!gc!stop":
 
