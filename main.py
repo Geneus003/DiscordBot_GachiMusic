@@ -2,6 +2,13 @@ import discord
 import os
 
 
+class BotInformation:
+
+    def __init__(self, server_id_g, music_pl_g):
+        self.server_id = server_id_g
+        self.music_pl = music_pl_g
+
+
 def get_list_of_local_music():
 
     default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic"  # Path to project folder
@@ -30,6 +37,8 @@ def main():
 
     @client.event
     async def on_message(message):
+
+        server = message.server
 
         if message.author == client.user:
             # Just need it
@@ -91,11 +100,38 @@ def main():
                 default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic/songs"  # Path to music
                 music_folder = default_folder + "/" + folder_with_songs[needful_song_number - 1]    # Path to correct music
 
-                channel = client.get_channel("425248908172853254")      # Getting channel id
+                global music_player, bot_voice  # This code need to stop the music
 
-                bot_voice = await client.join_voice_channel(channel)  # Joining to voice channel
+                if message.author.voice.voice_channel is None:
+                    return
 
-                global music_player     # This code need to stop the music
+                channel = client.get_channel(message.author.voice.voice_channel.id)     # Getting channel id
+
+                if not client.is_voice_connected(server):
+
+                    bot_voice = await client.join_voice_channel(channel)  # Joining to voice channel
+
+                else:
+
+                    if bot_voice.channel.id == channel:
+
+                        if music_player is None:  # If music_player had never used
+                            return
+
+                        if music_player.is_playing():  # Checking for activity if true -> stopping
+                            music_player.stop()
+
+                    else:
+
+                        if music_player is None:  # If music_player had never used
+                            return
+
+                        if music_player.is_playing():  # Checking for activity if true -> stopping
+                            music_player.stop()
+
+                        await bot_voice.disconnect()
+
+                        bot_voice = await client.join_voice_channel(channel)
 
                 music_player = bot_voice.create_ffmpeg_player(music_folder)  # Creating player
 
@@ -110,6 +146,14 @@ def main():
 
             if music_player.is_playing():   # Checking for activity if true -> stopping
                 music_player.stop()
+
+        if message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ" or message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ?":
+
+            default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic"
+
+            await client.send_message(message.channel, "Глобал на основе")
+
+            await client.send_file(message.channel, default_folder+"/Pictures/mort.jpg")
 
     client.run(token)
 
