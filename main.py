@@ -1,12 +1,14 @@
 import discord
 import os
+import time
 
 
 class BotInformation:
 
-    def __init__(self, server_id_g, music_pl_g):
+    def __init__(self, server_id_g):
         self.server_id = server_id_g
-        self.music_pl = music_pl_g
+        self.music_pl = None
+        self.bot_voice = None
 
 
 def get_list_of_local_music():
@@ -24,8 +26,6 @@ def main():
     token = ""   # Discord bot token
 
     client = discord.Client()   # Discord client
-
-    music_player = None     # Initialization of music player, because can get an error "Used before assignment"
 
     server_list = []
 
@@ -52,15 +52,13 @@ def main():
 
                     return i_temp
 
-            server_list.append(BotInformation(discord_server_id, None))
+            server_list.append(BotInformation(discord_server_id))
 
             print("Registrations the new server", discord_server_id)
 
             return server_list[-1]
 
         bot_information = getting_information_about_server(server.id)
-
-        # print(bot_information.server_id)
 
         if message.author == client.user:
             # Just need it
@@ -122,8 +120,6 @@ def main():
                 default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic/songs"  # Path to music
                 music_folder = default_folder + "/" + folder_with_songs[needful_song_number - 1]    # Path to correct music
 
-                global music_player, bot_voice  # This code need to stop the music
-
                 if message.author.voice.voice_channel is None:
                     return
 
@@ -131,43 +127,43 @@ def main():
 
                 if not client.is_voice_connected(server):
 
-                    bot_voice = await client.join_voice_channel(channel)  # Joining to voice channel
+                    bot_information.bot_voice = await client.join_voice_channel(channel)  # Joining to voice channel
 
                 else:
 
-                    if bot_voice.channel.id == channel:
+                    if bot_information.bot_voice.channel.id == channel:
 
-                        if music_player is None:  # If music_player had never used
+                        if bot_information.music_player is None:  # If music_player had never used
                             return
 
-                        if music_player.is_playing():  # Checking for activity if true -> stopping
-                            music_player.stop()
+                        if bot_information.music_player.is_playing():  # Checking for activity if true -> stopping
+                            bot_information.music_player.stop()
 
                     else:
 
-                        if music_player is None:  # If music_player had never used
+                        if bot_information.music_player is None:  # If music_player had never used
                             return
 
-                        if music_player.is_playing():  # Checking for activity if true -> stopping
-                            music_player.stop()
+                        if bot_information.music_player.is_playing():  # Checking for activity if true -> stopping
+                            bot_information.music_player.stop()
 
-                        await bot_voice.disconnect()
+                        await bot_information.bot_voice.disconnect()
 
-                        bot_voice = await client.join_voice_channel(channel)
+                        bot_information.bot_voice = await client.join_voice_channel(channel)
 
-                music_player = bot_voice.create_ffmpeg_player(music_folder)  # Creating player
+                bot_information.music_player = bot_information.bot_voice.create_ffmpeg_player(music_folder)  # Creating player
 
-                music_player.start()  # Playing music in voice channel
+                bot_information.music_player.start()  # Playing music in voice channel
 
         if message.content == "!gc!stop":
 
             # Code for stopping music
 
-            if music_player is None:    # If music_player had never used
+            if bot_information.music_player is None:    # If music_player had never used
                 return
 
-            if music_player.is_playing():   # Checking for activity if true -> stopping
-                music_player.stop()
+            if bot_information.music_player.is_playing():   # Checking for activity if true -> stopping
+                bot_information.music_player.stop()
 
         if message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ" or message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ?":
 
