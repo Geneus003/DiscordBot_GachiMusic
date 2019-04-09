@@ -27,6 +27,8 @@ def main():
 
     music_player = None     # Initialization of music player, because can get an error "Used before assignment"
 
+    server_list = []
+
     @client.event
     async def on_ready():   # To show starting of the work and some information
 
@@ -39,6 +41,26 @@ def main():
     async def on_message(message):
 
         server = message.server
+
+        def getting_information_about_server(discord_server_id):
+
+            for i_temp in server_list:
+
+                if i_temp.server_id == discord_server_id:
+
+                    # print("Server already registered", discord_server_id)
+
+                    return i_temp
+
+            server_list.append(BotInformation(discord_server_id, None))
+
+            print("Registrations the new server", discord_server_id)
+
+            return server_list[-1]
+
+        bot_information = getting_information_about_server(server.id)
+
+        # print(bot_information.server_id)
 
         if message.author == client.user:
             # Just need it
