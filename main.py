@@ -28,7 +28,7 @@ def main():
 
     token = ""   # Discord bot token
 
-    client = discord.Client()   # Discord client
+    client = discord.Client()   # Discord clients
 
     server_list = []
 
