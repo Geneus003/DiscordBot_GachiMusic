@@ -1,6 +1,8 @@
 import discord
 import os
-import time
+from _datetime import datetime
+
+# Version 1.0
 
 
 class BotInformation:
@@ -9,6 +11,7 @@ class BotInformation:
         self.server_id = server_id_g
         self.music_pl = None
         self.bot_voice = None
+        self.bot_last_activity = datetime.now()
 
 
 def get_list_of_local_music():
@@ -36,6 +39,9 @@ def main():
         print(client.user.name)
         print(client.user.id)
         print('------')
+
+        game_name = "To show the commands write '!gc!help', Version=1.0"
+        await client.change_presence(game=discord.Game(name=game_name))
 
     @client.event
     async def on_message(message):
@@ -76,8 +82,8 @@ def main():
 
             # Code to show all available bot functions
 
-            await client.send_message(message.channel, "Some instructions")
-            await client.send_message(message.channel, "Some more instructions")
+            help_text = open("./static_texts/help_inst.txt", "r")
+            await client.send_message(message.channel, help_text.read())
 
         if message.content == "!gc!list":
 
@@ -97,6 +103,8 @@ def main():
         if message.content.startswith("!gc!play"):
 
             # Code to play music in channel
+
+            bot_information.bot_last_activity = datetime.now()
 
             request_to_play_message = message.content.split(" ")    # Parsing message
 
@@ -158,6 +166,8 @@ def main():
         if message.content == "!gc!stop":
 
             # Code for stopping music
+
+            bot_information.bot_last_activity = datetime.now()
 
             if bot_information.music_player is None:    # If music_player had never used
                 return

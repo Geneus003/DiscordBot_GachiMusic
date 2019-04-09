@@ -1,0 +1,4 @@
+!gc!help - Show all the commands
+!gc!list - Show all available songs
+!gc!play {number} - Start playing song. Number you can find in !gc!list
+!gc!stop - stop playing music
