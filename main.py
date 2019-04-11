@@ -1,20 +1,20 @@
 import discord
 import os
-from _datetime import datetime
-
-# Version 1.0
+import time
+import asyncio
+import random
+from threading import Thread
 
 
 class BotInformation:
+    def __init__(self, id_server):
 
-    def __init__(self, server_id_g):
-        self.server_id = server_id_g
+        self.server_id = id_server
         self.music_pl = None
         self.bot_voice = None
-        self.bot_last_activity = datetime.now()
 
 
-def get_list_of_local_music():
+def get_list_of_local_songs():
 
     default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic"  # Path to project folder
 
@@ -26,162 +26,191 @@ def get_list_of_local_music():
 
 def main():
 
-    token = ""   # Discord bot token
+    def exit_from_channel():
 
-    client = discord.Client()   # Discord clients
+        while True:
+            for i in servers_list:
 
-    server_list = []
+                async def disconnecting_from_channel():
+                    print("here!")
+                    i.bot_voice.channel = None
+                    i.music_pl = None
+                    await i.bot_voice.disconnect()
+
+                if i.bot_voice is None:
+                    continue
+
+                if len(i.bot_voice.channel.members) == 1:
+                    print("wow")
+                    loop = asyncio.new_event_loop()
+                    loop.run_until_complete(disconnecting_from_channel())
+                    print("Gggg")
+
+            time.sleep(6)
+
+    token = ""      # Discord bot token
+
+    client = discord.Client()       # Discord Client
+
+    servers_list = []
+
+    # exit_from_channel_thread = Thread(target=exit_from_channel)
+    # exit_from_channel_thread.start()
 
     @client.event
-    async def on_ready():   # To show starting of the work and some information
+    async def on_ready():
 
         print('Logged in as')
         print(client.user.name)
         print(client.user.id)
         print('------')
 
-        game_name = "To show the commands write '!gc!help', Version=1.0"
-        await client.change_presence(game=discord.Game(name=game_name))
-
     @client.event
     async def on_message(message):
 
-        server = message.server
+        if message.author == client.user:
+            return
 
-        def getting_information_about_server(discord_server_id):
+        def get_information_about_server(server_id):
 
-            for i_temp in server_list:
+            for i_temp in servers_list:
 
-                if i_temp.server_id == discord_server_id:
-
-                    # print("Server already registered", discord_server_id)
+                if i_temp.server_id == server_id:
 
                     return i_temp
 
-            server_list.append(BotInformation(discord_server_id))
+            servers_list.append(BotInformation(server_id))
+            print("Registering a new server: ", server_id)
+            return servers_list[-1]
 
-            print("Registrations the new server", discord_server_id)
-
-            return server_list[-1]
-
-        bot_information = getting_information_about_server(server.id)
-
-        if message.author == client.user:
-            # Just need it
-            return
+        bot_information = get_information_about_server(message.guild.id)
 
         if message.content == "!gc!creator":
 
-            # Code to show info about author
+            creator_text_message = "My creator is Geneus003 \n Email: geneus003@gmail.com"
 
-            creator_message_text = "My creator is Geneus003 \n Email: geneus003@gmail.com"
-
-            await client.send_message(message.channel, creator_message_text)
+            await message.channel.send(creator_text_message)
 
         if message.content == "!gc!help":
 
-            # Code to show all available bot functions
-
             help_text = open("./static_texts/help_inst.txt", "r")
-            await client.send_message(message.channel, help_text.read())
+
+            await message.channel.send(help_text.read())
 
         if message.content == "!gc!list":
 
-            # Code to send ID and names of songs in chat
+            list_of_local_songs = get_list_of_local_songs()
 
-            folder_with_songs = get_list_of_local_music()
+            local_songs_message = ""
 
-            list_of_music_list = ""  # Message with information about names of available songs, and there ID
-            counter_for_music_list = 1      # ID for music list
+            con_of_local_songs = 1
+            for i in list_of_local_songs:
 
-            for i in folder_with_songs:    # Adding all names and information about available songs from list to message
-                list_of_music_list += str(counter_for_music_list) + ") " + str(i[:-4]) + "\n"
-                counter_for_music_list += 1
+                local_songs_message += str(con_of_local_songs) + ") " + i[:-4] + "\n"
+                con_of_local_songs += 1
 
-            await client.send_message(message.channel, list_of_music_list)
+            await message.channel.send(local_songs_message)
 
         if message.content.startswith("!gc!play"):
 
-            # Code to play music in channel
-
-            bot_information.bot_last_activity = datetime.now()
-
-            request_to_play_message = message.content.split(" ")    # Parsing message
-
-            # Checking for validity
-            if len(request_to_play_message) != 2 or (not request_to_play_message[1].isdigit()):
-
-                await client.send_message(message.channel, "Incorrect input:(")
+            if message.author.voice is None:
                 return
 
-            needful_song_number = int(request_to_play_message[1])   # The number of needful song
+            parsed_message = message.content.split(" ")
 
-            # The number mustn't be zero, here is code which checking that needful_song_number isn't zero
-            if needful_song_number == 0:
-                await client.send_message(message.channel, "Incorrect input:(")
+            if not parsed_message[1].isdigit() or (len(parsed_message) != 2 or int(parsed_message[1]) <= 0):
+
+                await message.channel.send("Incorrect input")
                 return
 
-            folder_with_songs = get_list_of_local_music()   # Getting name of local songs
+            list_of_local_songs = get_list_of_local_songs()
 
-            if len(folder_with_songs) >= needful_song_number:   # If number more than songs we have
+            if int(parsed_message[1]) > len(list_of_local_songs):
 
-                default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic/songs"  # Path to music
-                music_folder = default_folder + "/" + folder_with_songs[needful_song_number - 1]    # Path to correct music
+                await message.channel.send("Incorrect input")
+                return
 
-                if message.author.voice.voice_channel is None:
-                    return
+            default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic"
 
-                channel = client.get_channel(message.author.voice.voice_channel.id)     # Getting channel id
+            road_to_correct_song = default_folder + "/songs/" + list_of_local_songs[int(parsed_message[1]) - 1]
 
-                if not client.is_voice_connected(server):
+            if bot_information.bot_voice is None:
 
-                    bot_information.bot_voice = await client.join_voice_channel(channel)  # Joining to voice channel
+                bot_information.bot_voice = await message.author.voice.channel.connect()
 
-                else:
+            else:
 
-                    if bot_information.bot_voice.channel.id == channel:
+                if bot_information.bot_voice.channel.id != message.author.voice.channel.id:
 
-                        if bot_information.music_player is None:  # If music_player had never used
-                            return
+                    await bot_information.bot_voice.disconnect()
 
-                        if bot_information.music_player.is_playing():  # Checking for activity if true -> stopping
-                            bot_information.music_player.stop()
+                    bot_information.bot_voice = await message.author.voice.channel.connect()
 
-                    else:
+            if bot_information.bot_voice is not None:
 
-                        if bot_information.music_player is None:  # If music_player had never used
-                            return
+                if bot_information.bot_voice.is_playing():
 
-                        if bot_information.music_player.is_playing():  # Checking for activity if true -> stopping
-                            bot_information.music_player.stop()
+                    bot_information.bot_voice.stop()
 
-                        await bot_information.bot_voice.disconnect()
-
-                        bot_information.bot_voice = await client.join_voice_channel(channel)
-
-                bot_information.music_player = bot_information.bot_voice.create_ffmpeg_player(music_folder)  # Creating player
-
-                bot_information.music_player.start()  # Playing music in voice channel
+            bot_information.music_pl = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(road_to_correct_song))
+            bot_information.bot_voice.play(bot_information.music_pl)
 
         if message.content == "!gc!stop":
 
-            # Code for stopping music
+            if bot_information.bot_voice is not None:
 
-            bot_information.bot_last_activity = datetime.now()
+                if bot_information.bot_voice.is_playing():
 
-            if bot_information.music_player is None:    # If music_player had never used
+                    bot_information.bot_voice.stop()
+
+        if message.content == "!gc!leave":
+
+            await bot_information.bot_voice.disconnect()
+            bot_information.bot_voice = None
+            bot_information.music_pl = None
+
+        if message.content == "!gc!random":
+
+            if message.author.voice is None:
                 return
 
-            if bot_information.music_player.is_playing():   # Checking for activity if true -> stopping
-                bot_information.music_player.stop()
+            list_of_local_songs = get_list_of_local_songs()
+
+            default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic"
+
+            len_of_local_songs = len(list_of_local_songs) - 1
+
+            road_to_correct_song = default_folder + "/songs/" + list_of_local_songs[random.randint(0, len_of_local_songs)]
+
+            if bot_information.bot_voice is None:
+
+                bot_information.bot_voice = await message.author.voice.channel.connect()
+
+            else:
+
+                if bot_information.bot_voice.channel.id != message.author.voice.channel.id:
+
+                    await bot_information.bot_voice.disconnect()
+
+                    bot_information.bot_voice = await message.author.voice.channel.connect()
+
+            if bot_information.bot_voice is not None:
+
+                if bot_information.bot_voice.is_playing():
+
+                    bot_information.bot_voice.stop()
+
+            bot_information.music_pl = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(road_to_correct_song))
+            bot_information.bot_voice.play(bot_information.music_pl)
 
         if message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ" or message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ?":
 
             default_folder = "/home/geneus/Projects/Discord_bots/DiscordBot_GachiMusic"
 
-            await client.send_message(message.channel, "Глобал на основе")
+            additional_folder = default_folder + "/Pictures/mort.jpg"
 
-            await client.send_file(message.channel, default_folder+"/Pictures/mort.jpg")
+            await message.channel.send("Миша, что он на меня орет, да и у меня глобал на основе, а не у него")
+            await message.channel.send(file=discord.File(additional_folder))
 
     client.run(token)
 
