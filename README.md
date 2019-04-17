@@ -11,4 +11,4 @@ In this version we add:
 
 ## Also we add
 
-- right now bot will leave inactive voice channel(where just bot)
+- bot will leave inactive voice channel(where just bot)
