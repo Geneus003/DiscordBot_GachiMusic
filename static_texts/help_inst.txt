@@ -1,4 +1,6 @@
-!gc!help - Show all the commands
-!gc!list - Show all available songs
-!gc!play {number} - Start playing song. Number you can find in !gc!list
-!gc!stop - stop playing music
+!gc!help - To  show all commands
+!gc!play <p> - To play local music, with number p
+!gc!list - To show all local songs
+!gc!random - To play random local music
+!gc!stop - To stop playing song
+!gc!leave - The bot will leave channel
