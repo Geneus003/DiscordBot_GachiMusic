@@ -12,6 +12,8 @@ class BotInformation:
         self.server_id = id_server      # Server id witch autorotate a server
         self.music_pl = None        # Music player
         self.bot_voice = None       # Thread with bot voice
+        self.playing_games = True   # To play gachi song if user starting playing game
+        self.prefix = "!gc!"
 
 
 def get_list_of_local_songs():
@@ -65,6 +67,20 @@ def main():
 
             await asyncio.sleep(120)
 
+    def get_information_about_server(server_id):
+
+        # Function which add new server into server list or return existed class
+
+        for i_temp in servers_list:
+
+            if i_temp.server_id == server_id:
+                return i_temp
+
+        servers_list.append(BotInformation(server_id))
+        f = open("./static_texts/server_info.txt", "a")
+        print("Registering a new server: ", server_id, file=f)
+        return servers_list[-1]
+
     client.loop.create_task(timing_tasks_of_discord())
 
     @client.event
@@ -79,13 +95,45 @@ def main():
         print(client.user.id)
         print('------')
 
-    """
     @client.event
-    async def on_member_update():
+    async def on_member_update(member_before, member_after):
 
-        print("wow")
-    
-    """
+        # This function start playing game related gachi song
+
+        road_to_correct_song = None
+
+        bot_information = get_information_about_server(member_after.guild.id)
+
+        if not bot_information.playing_games:
+
+            return
+
+        for i in member_after.activities:
+
+            if i.name == "Counter-Strike: Global Offensive":
+
+                road_to_correct_song = "./songs/【Gachimuchi】 CS♂GO.mp3"
+
+            elif i.name == "Overwatch":
+
+                road_to_correct_song = "./songs/Gachi Overwatch Victory  Menu Theme ♂RIGHT VERSION♂ gachiGASM.mp3"
+
+            elif i.name == "Grand Theft Auto V" or i.name == "Grand Theft Auto San Andreas":
+
+                road_to_correct_song = "【Gachimuchi】Grand ♂ Theft ♂ Auto.mp3"
+
+        if road_to_correct_song is not None:
+
+            if bot_information.bot_voice is not None:
+
+                if bot_information.bot_voice.is_playing():
+
+                    return
+
+            bot_information.bot_voice = await member_after.voice.channel.connect()
+
+            bot_information.music_pl = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(road_to_correct_song))
+            bot_information.bot_voice.play(bot_information.music_pl)
 
     @client.event
     async def on_message(message):
@@ -94,30 +142,17 @@ def main():
             # Bot send a message -> return
             return
 
-        def get_information_about_server(server_id):
-
-            # Function which add new server into server list or return existed class
-
-            for i_temp in servers_list:
-
-                if i_temp.server_id == server_id:
-
-                    return i_temp
-
-            servers_list.append(BotInformation(server_id))
-            f = open("./static_texts/server_info.txt", "a")
-            print("Registering a new server: ", server_id, file=f)
-            return servers_list[-1]
-
         bot_information = get_information_about_server(message.guild.id)    # Getting bot information
 
-        if message.content == "!gc!creator":
+        if message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ" or message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ?":
+            # Function which send mem
 
-            # Function which send creator information
+            default_folder = "."
 
-            creator_text_message = "My creator is Geneus003 \n Email: geneus003@gmail.com"
+            additional_folder = default_folder + "/Pictures/another/mort.jpg"
 
-            await message.channel.send(creator_text_message)
+            await message.channel.send("Миша, что он на меня орет, да и у меня глобал на основе, а не у него")
+            await message.channel.send(file=discord.File(additional_folder))
 
         if message.content == "!gc!help":
 
@@ -133,7 +168,51 @@ def main():
             except discord.Forbidden:
                 return
 
-        if message.content.startswith("!gc!list"):
+            return
+
+        if bot_information.prefix == message.content[:len(bot_information.prefix)]:
+
+            message.content = message.content[len(bot_information.prefix):]
+
+        else:
+            return
+
+        if message.content == "creator":
+
+            # Function which send creator information
+
+            creator_text_message = "My creator is Geneus003 \n Email: geneus003@gmail.com"
+
+            await message.channel.send(creator_text_message)
+
+        if message.content.startswith("prefix"):
+
+            parsed_message = message.content.split(" ")
+
+            if len(parsed_message) != 2 or parsed_message[1] == " ":
+
+                await message.channel.send("Incorrect input")
+                return
+
+            bot_information.prefix = str(parsed_message[1])
+
+            await message.channel.send("Prefix '" + str(parsed_message[1]) + "' have been installed")
+
+        if message.content == "help":
+
+            # Function which send commands info
+
+            help_text = open("./static_texts/help_inst.txt", "r")
+
+            await message.channel.send("All commands and their descriptions have been sent, look in your DM!")
+
+            try:
+                await message.author.send(help_text.read())
+
+            except discord.Forbidden:
+                return
+
+        if message.content.startswith("list"):
 
             # Function which send list info
 
@@ -194,9 +273,25 @@ def main():
 
                         local_songs_message += str(i+1) + ") " + list_of_local_songs[i] + "\n"
 
+                if local_songs_message == "":
+
+                    local_songs_message = "We can't find this music, try again"
+
                 await message.channel.send(local_songs_message)
 
-        if message.content.startswith("!gc!play"):
+        if message.content == "game_activity":
+
+            if not bot_information.playing_games:
+                bot_information.playing_games = True
+                playing_games_text = "Now the bot will play the songs if the person will start playing in correct game"
+                await message.channel.send(playing_games_text)
+
+            else:
+                bot_information.playing_games = False
+                playing_games_text = "Now the bot will not play the songs if the person will start playing in correct game"
+                await message.channel.send(playing_games_text)
+
+        if message.content.startswith("play"):
 
             # Function which play audio from local file
 
@@ -242,7 +337,7 @@ def main():
             bot_information.music_pl = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(road_to_correct_song))
             bot_information.bot_voice.play(bot_information.music_pl)
 
-        if message.content == "!gc!stop":
+        if message.content == "stop":
 
             # Function which stop the music
 
@@ -252,7 +347,7 @@ def main():
 
                     bot_information.bot_voice.stop()
 
-        if message.content == "!gc!leave":
+        if message.content == "leave":
 
             # Function which makes bot leave
 
@@ -260,7 +355,7 @@ def main():
             bot_information.bot_voice = None
             bot_information.music_pl = None
 
-        if message.content == "!gc!random":
+        if message.content == "random":
 
             # Function which play random of local songs
 
@@ -296,7 +391,7 @@ def main():
             bot_information.music_pl = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(road_to_correct_song))
             bot_information.bot_voice.play(bot_information.music_pl)
 
-        if message.content.startswith("!gc!yt"):
+        if message.content.startswith("yt"):
 
             if bot_information.bot_voice is None:
 
@@ -317,7 +412,7 @@ def main():
 
             print(discord.opus)
 
-        if message.content == "!gc!memes":
+        if message.content == "memes":
 
             default_folder = "."
 
@@ -328,17 +423,6 @@ def main():
             meme_image = additional_folder + list_of_local_memes[random.randint(0, len(list_of_local_memes) - 1)]
 
             await message.channel.send(file=discord.File(meme_image))
-
-        if message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ" or message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ?":
-
-            # Function which send mem
-
-            default_folder = "."
-
-            additional_folder = default_folder + "/Pictures/another/mort.jpg"
-
-            await message.channel.send("Миша, что он на меня орет, да и у меня глобал на основе, а не у него")
-            await message.channel.send(file=discord.File(additional_folder))
 
     client.run(token)
 
