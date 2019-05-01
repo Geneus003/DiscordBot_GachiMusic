@@ -4,6 +4,8 @@ import math
 import asyncio
 import random
 
+from tinytag import TinyTag
+
 
 class BotInformation:
     # Class contains information about bot parameters
@@ -13,7 +15,7 @@ class BotInformation:
         self.music_pl = None        # Music player
         self.bot_voice = None       # Thread with bot voice
         self.playing_games = True   # To play gachi song if user starting playing game
-        self.prefix = "!gc!"
+        self.prefix = "!gc!"  
 
 
 def get_list_of_local_songs():
@@ -41,7 +43,7 @@ def main():
 
     token = ""      # Discord bot token
 
-    status_game = discord.Game("Try !gc!help | V 1.1")     # Variable to set status
+    status_game = discord.Game("Try !gc!help | V 1.1.1")     # Variable to set status
     client = discord.Client(activity=status_game)       # Discord Client
 
     servers_list = []       # List with BotInformation classes
@@ -337,6 +339,17 @@ def main():
             bot_information.music_pl = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(road_to_correct_song))
             bot_information.bot_voice.play(bot_information.music_pl)
 
+            song_duration = TinyTag.get(road_to_correct_song).duration
+            song_duration = math.ceil(song_duration)
+
+            information_about_song = "Now playing " + parsed_message[1] + ". "
+            information_about_song += list_of_local_songs[int(parsed_message[1]) - 1][:-4]
+            information_about_song += "\nIt have a duration "
+            information_about_song += str(int(song_duration // 60)) + " min "
+            information_about_song += str(song_duration % 60) + " sec"
+
+            await message.channel.send(information_about_song)
+
         if message.content == "stop":
 
             # Function which stop the music
@@ -368,7 +381,9 @@ def main():
 
             len_of_local_songs = len(list_of_local_songs) - 1
 
-            road_to_correct_song = default_folder + "/songs/" + list_of_local_songs[random.randint(0, len_of_local_songs)]
+            random_song_number = random.randint(0, len_of_local_songs)
+
+            road_to_correct_song = default_folder + "/songs/" + list_of_local_songs[random_song_number]
 
             if bot_information.bot_voice is None:
 
@@ -390,6 +405,17 @@ def main():
 
             bot_information.music_pl = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(road_to_correct_song))
             bot_information.bot_voice.play(bot_information.music_pl)
+
+            song_duration = TinyTag.get(road_to_correct_song).duration
+            song_duration = math.ceil(song_duration)
+
+            information_about_song = "Now playing " + str(random_song_number + 1) + ". "
+            information_about_song += list_of_local_songs[random_song_number][:-4]
+            information_about_song += "\nIt have a duration "
+            information_about_song += str(int(song_duration // 60)) + " min "
+            information_about_song += str(song_duration % 60) + " sec"
+
+            await message.channel.send(information_about_song)
 
         if message.content.startswith("yt"):
 

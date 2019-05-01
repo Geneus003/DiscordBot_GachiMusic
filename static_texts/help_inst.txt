@@ -1,6 +1,9 @@
-!gc!help - To  show all commands
-!gc!play <p> - To play local music, with number p
-!gc!list - To show all local songs
+!gc!help - To  show all commands(works independent from prefix)
+!gc!play <p> - To play local music, with number p  (!gc!play song_number)
+!gc!list - To show all local songs  (!gc!list list_number)
 !gc!random - To play random local music
 !gc!stop - To stop playing song
 !gc!leave - The bot will leave channel
+!gc!prefix - Set up the prefix  (!gc!prefix !!)
+!gc!playing_games - To play gachi game theme song if you start playing in correct game
+
