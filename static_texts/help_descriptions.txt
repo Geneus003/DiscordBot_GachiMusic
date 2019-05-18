@@ -1,0 +1,10 @@
+Play $$ - this function need to play gachi music in the voice channel $$ play <song number>
+Stop $$ - this function need to stop playing music in the voice channel $$ stop
+Leave $$ - this function make a bot leave from the voice channel $$ leave
+Random $$ - this function need to play random music in the voice channel $$ random
+Help $$ - this function need to send the instructions $$ help <command name>
+Prefix $$ - this function need to set up server's prefix $$ prefix <prefix you want to install>
+Playing_games $$ - this function need to turn off/on special function. Special function will play gachi theme music if you are starting playing in a game && playing_games
+Memes $$ - this function need to send a gachi meme $$ memes
+Creator $$ - this function need to send information about creator $$ creator
+List $$ - this function need to send 5 song's information $$ list <list number>

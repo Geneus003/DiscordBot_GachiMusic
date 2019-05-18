@@ -22,8 +22,8 @@ def main():
 
     token = ""   # Bot's token
 
-    status_game = discord.Game("Try !gc!help | V 1.2")  # Variable to set status
-    client = discord.Client(activity=status_game)  # Discord Client
+    # status_game = discord.Game('Try !gc!help | V 1.2')  # Variable to set status
+    client = discord.Client()  # Discord Client
 
     list_of_servers = []
 
@@ -36,6 +36,9 @@ def main():
         await client.wait_until_ready()
 
         while not client.is_closed():
+
+            status_game = discord.Game(name="Try !gc!help | V 1.2")
+            await client.change_presence(activity=status_game)
 
             for i_temp in list_of_servers:
 
@@ -84,6 +87,12 @@ def main():
             # Bot send a message -> return
             return
 
+        if message.guild is None:
+            return
+
+        message.content = message.content.strip()
+        message.content = message.content.lower()
+
         server_information = get_information_about_server(message.guild.id)  # Getting bot information
 
         if message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ" or message.content.upper() == "ПОЧЕМУ РОТ В ВОЛОДЕ?":
@@ -111,19 +120,36 @@ def main():
 
             return
 
-        if message.content == "help":
+        if message.content.startswith("help"):
 
-            # Function which send commands info
+            if len(message.content.split(" ")) != 2:
 
-            help_text = open("./static_texts/help_inst.txt", "r")
+                # Function which send commands info in dm
 
-            await message.channel.send("All commands and their descriptions have been sent, look in your DM!")
+                help_text_dm, help_text_server = additional_functions.text_of_basic_information(server_information.prefix)
 
-            try:
-                await message.author.send(help_text.read())
+                await message.channel.send(help_text_server)
 
-            except discord.Forbidden:
+                try:
+                    await message.author.send(help_text_dm)
+
+                except discord.Forbidden:
+                    return
+
                 return
+
+            else:
+
+                parsed_message = message.content.split(" ")
+
+                full_command_description = additional_functions.get_command_description(parsed_message[1], server_information.prefix)
+
+                if full_command_description is None:
+
+                    await message.channel.send("This command doesn't find, please try again")
+                    return
+
+                await message.channel.send(full_command_description)
 
         if message.content.startswith("prefix"):
 
@@ -213,6 +239,7 @@ def main():
             # Function which play audio from local file
 
             if message.author.voice is None:
+                await message.channel.send("Try to connect to the voice channel")
                 return
 
             parsed_message = message.content.split(" ")
@@ -253,6 +280,7 @@ def main():
             # Function to play random music
 
             if message.author.voice is None:
+                await message.channel.send("Try to connect to the voice channel")
                 return
 
             random_song_number = random.randint(0, len(additional_functions.get_list_of_local_songs()) - 1)

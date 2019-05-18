@@ -4,6 +4,58 @@ import random
 from tinytag import TinyTag
 
 
+def get_command_description(needful_command, prefix):
+
+    needful_command = needful_command.lower()
+
+    command_name, command_description, command_usage = None, None, None
+
+    list_of_commands_description = get_additional_information_about_commands()
+
+    for con_command_info in list_of_commands_description:
+
+        if con_command_info[0].lower() == needful_command:
+            command_name = con_command_info[0]
+            command_description = con_command_info[1]
+            command_usage = con_command_info[2]
+
+            break
+
+    if command_name is None:
+        return None
+
+    full_command_description = "***Command name and description:***\n " + "`" + command_name + " " + command_description + "`"
+    full_command_description += "\n\n***Command usage:***\n "
+    full_command_description += "`" + prefix + command_usage + "`"
+
+    return full_command_description
+
+
+def get_additional_information_about_commands():
+
+    list_of_commands_information = []
+
+    with open("./static_texts/help_descriptions.txt", "r") as file_des:
+
+        for line in file_des:
+
+            list_of_commands_information.append(line.split(" $$ "))
+
+        return list_of_commands_information
+
+
+def text_of_basic_information(prefix):
+
+    # Function to get text of basic information about the bot
+
+    help_text_dm = open("./static_texts/help_inst.txt", "r").read()
+
+    help_text_server = "All commands and their descriptions have been sent, look in your DM!"
+    help_text_server += "\rYour server prefix is - " + prefix
+
+    return help_text_dm, help_text_server
+
+
 def delete_server_info():
 
     if os.path.isfile('./static_texts/server_info.txt'):
