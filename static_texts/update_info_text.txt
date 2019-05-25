@@ -1,0 +1,2 @@
+- Added a new command !gc!github
+- Added a new command !gc!update

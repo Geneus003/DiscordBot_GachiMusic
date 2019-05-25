@@ -4,6 +4,19 @@ import random
 from tinytag import TinyTag
 
 
+def get_update_text():
+
+    update_information_file = open("./static_texts/update_info_text.txt", "r")
+
+    update_information_text = update_information_file.read()
+
+    update_information_text = update_information_text.replace("- ", "`- ").replace("\n", "`\n")
+
+    update_information_text += "\nTo get more information about update, visit our github"
+
+    return update_information_text
+
+
 def get_command_description(needful_command, prefix):
 
     needful_command = needful_command.lower()
@@ -58,9 +71,9 @@ def text_of_basic_information(prefix):
 
 def delete_server_info():
 
-    if os.path.isfile('./static_texts/server_info.txt'):
+    if os.path.isfile('./bot_statistics/server_info.txt'):
 
-        os.remove('./static_texts/server_info.txt')
+        os.remove('./bot_statistics/server_info.txt')
 
 
 def check_message_validity(message, prefix):

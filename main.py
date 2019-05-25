@@ -45,7 +45,15 @@ def main():
                 if i_temp.bot_voice is None:
                     continue
 
-                if len(i_temp.bot_voice.channel.members) == 1:
+                counter_of_bots_in_voice_channel = 0
+
+                for j_temp in i_temp.bot_voice.channel.members:
+
+                    if j_temp.bot:
+
+                        counter_of_bots_in_voice_channel += 1
+
+                if len(i_temp.bot_voice.channel.members) == counter_of_bots_in_voice_channel:
                     await i_temp.bot_voice.disconnect()
                     i_temp.bot_voice = None
                     i_temp.music_pl = None
@@ -62,8 +70,9 @@ def main():
                 return i_temp
 
         list_of_servers.append(ServerInformation(server_id))
-        f = open("./static_texts/server_info.txt", "a")
+        f = open("./bot_statistics/server_info.txt", "a")
         print("Registering a new server: ", server_id, file=f)
+        f.close()
         return list_of_servers[-1]
 
     client.loop.create_task(timing_tasks_of_discord())  # Start of permanent task
@@ -338,6 +347,18 @@ def main():
             # Function to send meme
 
             await message.channel.send(file=discord.File(additional_functions.path_to_random_meme()))
+
+        if message.content == "github":
+
+            github_info_message = "If you want to help me with a code, come here: https://github.com/Geneus003/DiscordBot_GachiMusic"
+
+            await message.channel.send(github_info_message)
+
+        if message.content.startswith("update"):
+
+            information_about_update_text = additional_functions.get_update_text()
+
+            await message.channel.send(information_about_update_text)
 
     @client.event
     async def on_member_update(member_before, member_after):
