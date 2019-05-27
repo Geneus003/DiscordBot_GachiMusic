@@ -2,8 +2,10 @@ import discord
 import asyncio
 import random
 import math
+import os
 
 import additional_functions
+import pictures_collapse
 
 
 class ServerInformation:
@@ -119,75 +121,7 @@ def main():
         if message.content is None:
             return
 
-        if message.content == "creator":
-
-            # Function which send creator information
-
-            creator_text_message = "My creator is Geneus003 \n Email: geneus003@gmail.com"
-
-            await message.channel.send(creator_text_message)
-
-            return
-
-        if message.content.startswith("help"):
-
-            if len(message.content.split(" ")) != 2:
-
-                # Function which send commands info in dm
-
-                help_text_dm, help_text_server = additional_functions.text_of_basic_information(server_information.prefix)
-
-                await message.channel.send(help_text_server)
-
-                try:
-                    await message.author.send(help_text_dm)
-
-                except discord.Forbidden:
-                    return
-
-                return
-
-            else:
-
-                parsed_message = message.content.split(" ")
-
-                full_command_description = additional_functions.get_command_description(parsed_message[1], server_information.prefix)
-
-                if full_command_description is None:
-
-                    await message.channel.send("This command doesn't find, please try again")
-                    return
-
-                await message.channel.send(full_command_description)
-
-        if message.content.startswith("prefix"):
-
-            # Function to set up server's prefix
-
-            parsed_message = message.content.split(" ")
-
-            if len(parsed_message) != 2 or parsed_message[1] == " ":
-
-                await message.channel.send("Incorrect prefix input")
-                return
-
-            server_information.prefix = str(parsed_message[1])
-
-            await message.channel.send("Prefix '" + str(parsed_message[1]) + "' have been installed")
-
-        if message.content == "playing_games":
-
-            # Function to activate special function(@client.member_update)
-
-            if not server_information.playing_games:
-                server_information.playing_games = True
-                playing_games_text = "Now the bot will play the songs if the person will start playing in correct game"
-                await message.channel.send(playing_games_text)
-
-            else:
-                server_information.playing_games = False
-                playing_games_text = "Now the bot will not play the songs if the person will start playing in correct game"
-                await message.channel.send(playing_games_text)
+        # Core functions
 
         if message.content.startswith("list"):
 
@@ -342,11 +276,62 @@ def main():
 
             return
 
-        if message.content == "memes":
+        if message.content == "playing_games":
 
-            # Function to send meme
+            # Function to activate special function(@client.member_update)
 
-            await message.channel.send(file=discord.File(additional_functions.path_to_random_meme()))
+            if not server_information.playing_games:
+                server_information.playing_games = True
+                playing_games_text = "Now the bot will play the songs if the person will start playing in correct game"
+                await message.channel.send(playing_games_text)
+
+            else:
+                server_information.playing_games = False
+                playing_games_text = "Now the bot will not play the songs if the person will start playing in correct game"
+                await message.channel.send(playing_games_text)
+
+        if message.content.startswith("help"):
+
+            if len(message.content.split(" ")) != 2:
+
+                # Function which send commands info in dm
+
+                help_text_dm, help_text_server = additional_functions.text_of_basic_information(server_information.prefix)
+
+                await message.channel.send(help_text_server)
+
+                try:
+                    await message.author.send(help_text_dm)
+
+                except discord.Forbidden:
+                    return
+
+                return
+
+            else:
+
+                parsed_message = message.content.split(" ")
+
+                full_command_description = additional_functions.get_command_description(parsed_message[1], server_information.prefix)
+
+                if full_command_description is None:
+
+                    await message.channel.send("This command doesn't find, please try again")
+                    return
+
+                await message.channel.send(full_command_description)
+
+        # Information functions
+
+        if message.content == "creator":
+
+            # Function which send creator information
+
+            creator_text_message = "My creator is Geneus003 \n Email: geneus003@gmail.com"
+
+            await message.channel.send(creator_text_message)
+
+            return
 
         if message.content == "github":
 
@@ -359,6 +344,50 @@ def main():
             information_about_update_text = additional_functions.get_update_text()
 
             await message.channel.send(information_about_update_text)
+
+        # Server's configuration functions
+
+        if message.content.startswith("prefix"):
+
+            # Function to set up server's prefix
+
+            parsed_message = message.content.split(" ")
+
+            if len(parsed_message) != 2 or parsed_message[1] == " ":
+
+                await message.channel.send("Incorrect prefix input")
+                return
+
+            server_information.prefix = str(parsed_message[1])
+
+            await message.channel.send("Prefix '" + str(parsed_message[1]) + "' have been installed")
+
+        # Fun functions
+
+        if message.content == "memes":
+
+            # Function to send meme
+
+            await message.channel.send(file=discord.File(additional_functions.path_to_random_meme()))
+
+            return
+
+        if message.content == "meme":
+
+            if os.path.isfile('./Pictures/meme_in_image/in.jpg'):
+                os.remove('./Pictures/meme_in_image/in.jpg')
+
+            await message.author.avatar_url_as(static_format="jpg", size=128).save("./Pictures/meme_in_image/in.jpg")
+
+            if os.path.isfile('./Pictures/meme_in_image/in.jpg'):
+
+                pictures_collapse.collapse_image("./Pictures/another/ass_command.jpg", "./Pictures/meme_in_image/in.jpg", (130, 115))
+
+                await message.channel.send(file=discord.File("./Pictures/meme_out_image/out.jpg"))
+
+            else:
+
+                await message.channel.send("Sorry we got an error, please report us about it:(")
 
     @client.event
     async def on_member_update(member_before, member_after):

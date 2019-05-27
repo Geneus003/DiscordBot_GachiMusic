@@ -2,6 +2,7 @@ import os
 import math
 import random
 from tinytag import TinyTag
+import urllib.request
 
 
 def get_update_text():
@@ -12,7 +13,7 @@ def get_update_text():
 
     update_information_text = update_information_text.replace("- ", "`- ").replace("\n", "`\n")
 
-    update_information_text += "\nTo get more information about update, visit our github"
+    update_information_text += "\nTo get more information about update, visit project's github"
 
     return update_information_text
 
